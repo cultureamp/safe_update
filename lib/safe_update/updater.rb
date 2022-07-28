@@ -17,18 +17,22 @@ module SafeUpdate
       puts 'Finding outdated gems...'
       outdated_gems = get_outdated_gems
 
-      presenter = SafeUpdate::Presenter.new
-      Thread.new { presenter.call(outdated_gems) }
+      if outdated_gems.empty?
+        puts 'No outdated gems found...'
+      else
+        presenter = SafeUpdate::Presenter.new
+        Thread.new { presenter.call(outdated_gems) }
 
-      outdated_gems.to_enum.with_index(1) do |outdated_gem, index|
-        outdated_gem.attempt_update(test_command)
-        @git_repo.push if run_git_push && index % push_interval == 0
+        outdated_gems.to_enum.with_index(1) do |outdated_gem, index|
+          outdated_gem.attempt_update(test_command)
+          @git_repo.push if run_git_push && index % push_interval == 0
+        end
+
+        # run it once at the very end, so the final commit can be tested in CI
+        @git_repo.push if run_git_push
+
+        presenter.stop
       end
-
-      # run it once at the very end, so the final commit can be tested in CI
-      @git_repo.push if run_git_push
-
-      presenter.stop
     end
 
     private
