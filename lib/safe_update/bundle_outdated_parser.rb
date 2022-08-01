@@ -4,10 +4,7 @@ module SafeUpdate
   class BundleOutdatedParser
     def call
       @outdated_gems = []
-      # Yes, I know about `bundle outdated --parseable` but old versions
-      # don't support it and it's really not THAT much more parseable anyway
-      # and parseable still sometimes has lines that aren't relevant
-      @output = `bundle outdated`
+      @output = `bundle outdated --parseable`
       @output.split(/\n+/).each do |line|
         process_single_line(line)
       end
